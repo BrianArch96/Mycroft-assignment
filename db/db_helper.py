@@ -54,7 +54,17 @@ class db_helper(object):
 
         
         post_id = self.assignment_collection.insert_one(assignment).inserted_id
+    
+    def getAllAssignments(self, moduleID):
+        self.assignment_collection = self.db[moduleID]
+        assignments = []
         
+        for assignment_bson in self.assignment_collection.find({}):
+            assignment = self.parseAssignment(assignment_bson)
+            if not assignment:
+                return None
+            assignments.append(assignment)
+        return assignments
 
     def getAssignment(self, moduleID, assignment_name):
         self.assignment_collection = self.db[moduleID]
