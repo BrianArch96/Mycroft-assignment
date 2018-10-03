@@ -4,7 +4,7 @@
 
 class Assignment(object):
 
-    def __init__(self, date_issued, module_id, due_date, total_per, acc_per, assignment_type):
+    def __init__(self, date_issued, module_id, due_date, total_per, acc_per, assignment_type, name):
         #constructor for assignment class instance
         self._date_issued = date_issued
         self._module_id = module_id
@@ -12,6 +12,7 @@ class Assignment(object):
         self._total_per = total_per
         self._acc_per = acc_per
         self._assignment_type = assignment_type
+        self._name = name
 
     @property
     def date_issued(self):
@@ -72,7 +73,16 @@ class Assignment(object):
     def assignment_type(self, value):
         #setter for assignment_type
         self._assignment_type = value
-
+    
+    @property
+    def name(self):
+        #getter for assignment name
+        return self._name
+    
+    @name.setter
+    def name(self, value):
+        #setter for name
+        self._name = value
 
 
 
