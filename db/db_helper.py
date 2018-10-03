@@ -84,7 +84,6 @@ class db_helper(object):
 
     #update assignment due date
     def updateAssignmentDueDate(self, module_id, assignment_name, new_due_date):
-        print(new_due_date)
         self.assignment_collection = self.db[module_id]
         try:
             self.assignment_collection.update_one(
@@ -98,16 +97,60 @@ class db_helper(object):
             print(e)               
 
     #update total percentage for assignment
-    #def updateAssignmentTotalPer(self, module_id, assignment_name, new_total_per):
-        
+    def updateAssignmentTotalPer(self, module_id, assignment_name, new_total_per):
+        self.assignment_collection = self.db[module_id]
+        try:
+            self.assignment_collection.update_one(
+                {"name":assignment_name},
+                { "$set":
+                    {
+                        "total_percentage":new_total_per
+                    }
+                }, upsert=False)
+        except pymongo.errors.PyMongoError as e:
+            print(e)
+
     #update accumulated percentage
-    #def updateAssignmentAccPer(self, module_id, assignment_name, new_accumulated_per):
+    def updateAssignmentAccPer(self, module_id, assignment_name, new_accumulated_per):
+        self.assignment_collection = self.db[module_id]
+        try:
+            self.assignment_collection.update_one(
+                {"name":assignment_name},
+                { "$set":
+                    {
+                        "accumulated_percentage":new_accumulated_per
+                    }
+                }, upsert=False)
+        except pymongo.errors.PyMongoError as e:
+            print(e)       
 
     #update assignment type
-    #def updateAssignmentType(self, module_id,  assignment_name, new_assignment_type):
+    def updateAssignmentType(self, module_id,  assignment_name, new_assignment_type):
+        self.assignment_collection = self.db[module_id]
+        try:
+            self.assignment_collection.update_one(
+                {"name":assignment_name},
+                { "$set":
+                    {
+                        "assignment_type":new_assignment_type
+                    }
+                }, upsert=False)
+        except pymongo.errors.PyMongoError as e:
+            print(e)               
 
     #update assignment name
-    #def updateAssignmentName(self, module_id, assignment_name, new_assignment_name):
+    def updateAssignmentName(self, module_id, assignment_name, new_assignment_name):
+        self.assignment_collection = self.db[module_id]
+        try:
+            self.assignment_collection.update_one(
+                {"name":assignment_name},
+                { "$set":
+                    {
+                        "name":new_assignment_name
+                    }
+                }, upsert=False)
+        except pymongo.errors.PyMongoError as e:
+            print(e)           
 
     #remove a given assignment
     def removeAssignment(self, module_id, assignment_name):
