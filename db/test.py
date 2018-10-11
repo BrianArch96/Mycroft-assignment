@@ -2,10 +2,10 @@ from assignment import Assignment
 from db_helper import db_helper
 from module import Module
 
-assignment_test = Assignment("today", "cs4125", "tomorrow", 40, 15, "group", "test_assignment")
+assignment_test = Assignment("next_tuesday", "cs4072", "tomorrow", 40, 15, "group", "test_assignment")
 print(assignment_test.module_id)
 
-db = db_helper("15168867")
+db = db_helper("15161579")
 db.pushAssignment(assignment_test)
 """
 db.updateAssignmentDueDate("cs4125", "test_assignment", "billions of years")

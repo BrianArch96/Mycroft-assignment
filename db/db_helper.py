@@ -2,7 +2,7 @@ import pymongo
 from bson.json_util import dumps
 import json
 from pymongo import MongoClient
-from assignment import Assignment
+from .assignment import Assignment
 url = "mongodb://Archie96:hannah10@mycroft-assignment-shard-00-00-1rt5b.mongodb.net:27017,mycroft-assignment-shard-00-01-1rt5b.mongodb.net:27017,mycroft-assignment-shard-00-02-1rt5b.mongodb.net:27017/test?ssl=true&replicaSet=Mycroft-Assignment-shard-0&authSource=admin&retryWrites=true"
 
 class db_helper(object):
