@@ -39,6 +39,16 @@ class TemplateSkill(MycroftSkill):
         self.set_context("name_assignment", message.data.get("name"))
         self.speak_dialog("assignment_due_date")
 
+    @intent_handler(IntentBuilder("").require("list").require("module_id"))
+    def handle_list_assignment(self, message):
+        module_id = message.data.get("module_id")
+        assignment_list = self.db.getAllAssignments(module_id)
+        if not assignment_list:
+            self.speak_dialog("no_assignments")
+            return
+        for single_assignment in assignment_list:
+            self.speak_dialog(single_assignment.name)
+
     @intent_handler(IntentBuilder("").require("due_date").require("name_assignment"))
     def _handle_assignment_due_date(self, message):
         due_date = message.data.get("due_date")
