@@ -27,7 +27,6 @@ class TemplateSkill(MycroftSkill):
         print("Hello world")
         self.db = db_helper.db_helper(self.settings.get("student_id"))
 
-
     @intent_handler(IntentBuilder("").require("New_Assignment"))
     def handle_make_assignment(self, message):
         self._make_assignment()
@@ -39,10 +38,9 @@ class TemplateSkill(MycroftSkill):
         self.set_context("name_assignment", message.data.get("name"))
         self.speak_dialog("assignment_due_date")
 
-    @intent_handler(IntentBuilder("").require("list").require("module_id"))
+    @intent_handler(IntentBuilder("").require("list_all"))
     def handle_list_assignment(self, message):
-        module_id = message.data.get("module_id")
-        assignment_list = self.db.getAllAssignments(module_id)
+        assignment_list = self.db.getAllAssignments()
         if not assignment_list:
             self.speak_dialog("no_assignments")
             return
@@ -85,6 +83,17 @@ class TemplateSkill(MycroftSkill):
         self._type = message.data.get("type")
         self.speak_dialog("Done")
         self._handle_push_assignment()
+
+    @intent_handler(IntentBuilder("").require("list").require("module_id"))
+    def _handle_get_module_assignments(self, message):
+        module_id = message.data.get("module_id")
+        m_assignments = self.db.getAllModuleAssignments(module_id)
+        if not m_assignments:
+            print("Nono")
+            return
+
+        for assignment in m_assignments:
+            self.speak_dialog(assignment.name)
 
     def _handle_push_assignment(self):
         print("getting here")

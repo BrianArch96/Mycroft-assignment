@@ -4,7 +4,7 @@ import json
 from pymongo import MongoClient
 from .assignment import Assignment
 url = "mongodb://Archie96:hannah10@mycroft-assignment-shard-00-00-1rt5b.mongodb.net:27017,mycroft-assignment-shard-00-01-1rt5b.mongodb.net:27017,mycroft-assignment-shard-00-02-1rt5b.mongodb.net:27017/test?ssl=true&replicaSet=Mycroft-Assignment-shard-0&authSource=admin&retryWrites=true"
-
+assignments_collection = "Assignments"
 class db_helper(object):
     
     def __init__(self, studentID):
@@ -42,7 +42,7 @@ class db_helper(object):
                 "name": newAssignment.name 
                 }
 
-        self.assignment_collection = self.db[newAssignment.module_id]
+        self.assignment_collection = self.db[assignments_collection]
 
         #checks to see if assignment name is already in the module collection, if so return
         #without pushing anything
@@ -52,11 +52,11 @@ class db_helper(object):
                 print("Assignment name already exists")
                 return None
 
-        
+        print("yurting") 
         post_id = self.assignment_collection.insert_one(assignment).inserted_id
     
-    def getAllAssignments(self, moduleID):
-        self.assignment_collection = self.db[moduleID]
+    def getAllAssignments(self):
+        self.assignment_collection = self.db[assignments_collection]
         assignments = []
         
         for assignment_bson in self.assignment_collection.find({}):
@@ -66,15 +66,25 @@ class db_helper(object):
             assignments.append(assignment)
         return assignments
 
-    def getAssignment(self, moduleID, assignment_name):
-        self.assignment_collection = self.db[moduleID]
+    def getAssignment(self, assignment_name):
+        self.assignment_collection = self.db[assignments_collection]
         assignment_uni = self.assignment_collection.find_one({"name": assignment_name})
         if not assignment_uni:
             print("Error - Could not find an assignment with that name")
             return
 
         return self.parseAssignment(assignment_uni)
-       
+    
+    def getAllModuleAssignments(self, module_id):
+        all_assignments = self.getAllAssignments()
+        module_assignments = []
+
+        for assignment in all_assignments:
+            if module_id == assignment.module_id:
+                module_assignments.append(assignment)
+        
+        return module_assignments
+
     def parseAssignment(self, assignment_Bson):
         #dumps the BSON dictionary into a usable JSON format
         assignment_json = dumps(assignment_Bson)
@@ -85,16 +95,16 @@ class db_helper(object):
                 j['accumulated_percentage'], j['assignment_type'], j['name'])
 
     #gets the number of assignments for a given module
-    def assignmentCount(self, moduleID):
-        self.assignment_collection = self.db[moduleID]
+    def assignmentCount(self):
+        self.assignment_collection = self.db[assignments_collection]
         return self.assignment_collection.count()
    
     #These update functions could possibly be squished into one function, taking two parameters, the name of the field and the new value
     #Might look into refining it later down the line
 
     #update assignment due date
-    def updateAssignmentDueDate(self, module_id, assignment_name, new_due_date):
-        self.assignment_collection = self.db[module_id]
+    def updateAssignmentDueDate(self, assignment_name, new_due_date):
+        self.assignment_collection = self.db[assignments_collection]
         try:
             self.assignment_collection.update_one(
                 {"name":assignment_name},
@@ -107,8 +117,8 @@ class db_helper(object):
             print(e)               
 
     #update total percentage for assignment
-    def updateAssignmentTotalPer(self, module_id, assignment_name, new_total_per):
-        self.assignment_collection = self.db[module_id]
+    def updateAssignmentTotalPer(self, assignment_name, new_total_per):
+        self.assignment_collection = self.db[assignments_collection]
         try:
             self.assignment_collection.update_one(
                 {"name":assignment_name},
@@ -121,8 +131,8 @@ class db_helper(object):
             print(e)
 
     #update accumulated percentage
-    def updateAssignmentAccPer(self, module_id, assignment_name, new_accumulated_per):
-        self.assignment_collection = self.db[module_id]
+    def updateAssignmentAccPer(self, assignment_name, new_accumulated_per):
+        self.assignment_collection = self.db[assignments_collection]
         try:
             self.assignment_collection.update_one(
                 {"name":assignment_name},
@@ -135,8 +145,8 @@ class db_helper(object):
             print(e)       
 
     #update assignment type
-    def updateAssignmentType(self, module_id,  assignment_name, new_assignment_type):
-        self.assignment_collection = self.db[module_id]
+    def updateAssignmentType(self, assignment_name, new_assignment_type):
+        self.assignment_collection = self.db[assignments_collection]
         try:
             self.assignment_collection.update_one(
                 {"name":assignment_name},
@@ -149,8 +159,8 @@ class db_helper(object):
             print(e)               
 
     #update assignment name
-    def updateAssignmentName(self, module_id, assignment_name, new_assignment_name):
-        self.assignment_collection = self.db[module_id]
+    def updateAssignmentName(self, assignment_name, new_assignment_name):
+        self.assignment_collection = self.db[assignments_collection]
         try:
             self.assignment_collection.update_one(
                 {"name":assignment_name},
@@ -163,8 +173,8 @@ class db_helper(object):
             print(e)           
 
     #remove a given assignment
-    def removeAssignment(self, module_id, assignment_name):
-        self.assignment_collection = self.db[module_id]
+    def removeAssignment(self, assignment_name):
+        self.assignment_collection = self.db[assignments_collection]
         self.assignment_collection.remove({"name":assignment_name})
 
     #def removeModule(self, module_id):
