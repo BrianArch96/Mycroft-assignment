@@ -7,7 +7,8 @@
 # in the requirements.txt file so the library is installed properly
 # when the skill gets installed later by a user.
 
-from datetime import datetime
+import re
+from datetime import datetime, timedelta, date
 from adapt.intent import IntentBuilder
 from mycroft.skills.core import MycroftSkill, intent_handler
 from mycroft.util.log import LOG
@@ -52,12 +53,16 @@ class TemplateSkill(MycroftSkill):
     def _handle_assignment_due_date(self, message):
         due_date = message.data.get("due_date")
         self.due_date = extract_datetime(due_date)
+        if not self._due_date:
+            self.speak_dialog("invalid_due_date")
+            return
         #extract_datetime return a list containing datetime object and a string containing
         #whatever is leftover from the string passed through eg "Assignment is due 21st October"
         #would place Assignment is due within that string variable"
         self._due_date = self.due_date[0].strftime('%d/%m/%Y')
         if not self._due_date:
             self.speak_dialog("invalid_due_date")
+            return
         self.set_context("due_date_assignment", self._due_date)
         self.speak_dialog("assignment_module", expect_response=True)
 
@@ -93,6 +98,10 @@ class TemplateSkill(MycroftSkill):
         for assignment in m_assignments:
             self.speak_dialog(assignment.name)
 
+    @intent_handler(IntentBuilder("").require("next_assignment"))
+    def handle_next_assignmet(self, message):
+        self._handle_next_assignment()
+
     def _handle_push_assignment(self):
         now = datetime.now()
         assigned_date = now.strftime('%d/%m/%Y')
@@ -103,6 +112,51 @@ class TemplateSkill(MycroftSkill):
     def _make_assignment(self):
         self.speak_dialog("assignment_name", expect_response=True)
         self.set_context("new_assignment", "new assignment")
+
+    def _handle_next_assignment(self):
+        assignments = self.db.getAllAssignments()
+        closest_assignment = None;
+        for assignment in assignments:
+            if closest_assignment is None:
+                    closest_assignment = assignment
+            else:
+                closest_assignment_date = datetime.strptime(closest_assignment.due_date, "%d/%m/%Y")
+                challenging_assignment_date = datetime.strptime(assignment.due_date, "%d/%m/%Y")
+                if (closest_assignment_date > challenging_assignment_date):
+                    closest_assignment = assignment
+        _day, _month, _year = closest_assignment.due_date.split("/")
+        print(_day)
+        print(_month)
+        print(_year)
+        date_string = date(day=int(_day), month=int(_month), year=int(_year)).strftime('%A %d %B %Y')
+        self.speak_dialog("next_assignment_due", {"name": closest_assignment.name, "due_date": date_string})
+        print("get newest assignment handler")
+        self._check_other_assignments(closest_assignment, assignments)
+
+
+    def _check_other_assignments(self, closest_assignment, all_assignments):
+        today = datetime.now()
+        two_weeks = timedelta(days=14)
+        check_date = today + two_weeks
+        check_date = check_date.strftime("%d/%m/%Y")
+        print(check_date)
+
+        important_assignments = []
+        _check_date = datetime.strptime(check_date, "%d/%m/%Y")
+        for assignment in all_assignments:
+            assignment.total_per = re.sub("[^0-9]", "", assignment.total_per)
+            assignment_date = datetime.strptime(assignment.due_date, "%d/%m/%Y")
+            print(closest_assignment.total_per)
+            percentage_check = (float(closest_assignment.total_per) * 1.33)
+            percentage_check = int(percentage_check)
+            if (_check_date > assignment_date) and (percentage_check < int(assignment.total_per)):
+                important_assignments.append(assignment)
+
+        if important_assignments is None:
+            return
+        self.speak_dialog("But don't forget about the following assignments, they're due within two weeks and worth considerably more than " + closest_assignment.name)
+        for assigment in important_assignments:
+            self.speak_dialog(assignment.name + " and it's worth " + assignment.total_per + " percent of module " + assignment.module_id)
 
 # The "create_skill()" method is used to create an instance of the skill.
 # Note that it's outside the class itself.
