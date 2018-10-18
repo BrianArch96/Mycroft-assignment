@@ -7,6 +7,7 @@
 # in the requirements.txt file so the library is installed properly
 # when the skill gets installed later by a user.
 
+from datetime import date
 from datetime import datetime
 from adapt.intent import IntentBuilder
 from mycroft.skills.core import MycroftSkill, intent_handler
@@ -52,12 +53,16 @@ class TemplateSkill(MycroftSkill):
     def _handle_assignment_due_date(self, message):
         due_date = message.data.get("due_date")
         self.due_date = extract_datetime(due_date)
+        if not self._due_date:
+            self.speak_dialog("invalid_due_date")
+            return
         #extract_datetime return a list containing datetime object and a string containing
         #whatever is leftover from the string passed through eg "Assignment is due 21st October"
         #would place Assignment is due within that string variable"
         self._due_date = self.due_date[0].strftime('%d/%m/%Y')
         if not self._due_date:
             self.speak_dialog("invalid_due_date")
+            return
         self.set_context("due_date_assignment", self._due_date)
         self.speak_dialog("assignment_module", expect_response=True)
 
@@ -93,6 +98,10 @@ class TemplateSkill(MycroftSkill):
         for assignment in m_assignments:
             self.speak_dialog(assignment.name)
 
+    @intent_handler(IntentBuilder("").require("next_assignment"))
+    def handle_next_assignmet(self, message):
+        self._handle_next_assignment()
+
     def _handle_push_assignment(self):
         now = datetime.now()
         assigned_date = now.strftime('%d/%m/%Y')
@@ -103,6 +112,25 @@ class TemplateSkill(MycroftSkill):
     def _make_assignment(self):
         self.speak_dialog("assignment_name", expect_response=True)
         self.set_context("new_assignment", "new assignment")
+
+    def _handle_next_assignment(self):
+        assignments = self.db.getAllAssignments()
+        closest_assignment = None;
+        for assignment in assignments:
+            if closest_assignment is None:
+                    closest_assignment = assignment
+            else:
+                closest_assignment_date = datetime.strptime(closest_assignment.due_date, "%d/%m/%Y")
+                challenging_assignment_date = datetime.strptime(assignment.due_date, "%d/%m/%Y")
+                if (closest_assignment_date > challenging_assignment_date):
+                    closest_assignment = assignment
+        _day, _month, _year = closest_assignment.due_date.split("/")
+        print(_day)
+        print(_month)
+        print(_year)
+        date_string = date(day=int(_day), month=int(_month), year=int(_year)).strftime('%A %d %B %Y')
+        self.speak_dialog("next_assignment_due", {"name": closest_assignment.name, "due_date": date_string})
+        print("get newest assignment handler")
 
 # The "create_skill()" method is used to create an instance of the skill.
 # Note that it's outside the class itself.
