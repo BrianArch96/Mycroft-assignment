@@ -17,3 +17,29 @@
         ]
     }
 }
+
+{
+	"name": "Student_Email",
+	"color": "#22a7f0",
+	"skillMetadata": {
+		"sections": [
+			{
+				"name": "Login",
+				"fields": [
+					{
+						"name": "email",
+						"type": "email",
+						"label": "Email",
+						"value": ""
+					},
+					{
+						"name": "password",
+						"type": "password",
+						"label": "Password",
+						"value":""
+					}
+				]
+			}
+		]
+	}				
+}

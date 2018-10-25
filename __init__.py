@@ -7,6 +7,8 @@
 # in the requirements.txt file so the library is installed properly
 # when the skill gets installed later by a user.
 
+import threading
+import time
 import re
 from datetime import datetime, timedelta, date
 from adapt.intent import IntentBuilder
@@ -15,6 +17,7 @@ from mycroft.util.log import LOG
 from mycroft.util.parse import extract_datetime
 from .db import assignment
 from .db import db_helper
+from .email import send_email
 
 # Each skill is contained within its own class, which inherits base methods
 # from the MycroftSkill class.  You extend this class as shown below.
@@ -29,6 +32,8 @@ class TemplateSkill(MycroftSkill):
 
     @intent_handler(IntentBuilder("").require("New_Assignment"))
     def handle_make_assignment(self, message):
+        self.time_thread = threading.Thread(target=self._timeCheck, args=[])
+        self.time_thread.start()
         self._make_assignment()
 
     @intent_handler(IntentBuilder("").require("name").
@@ -67,14 +72,14 @@ class TemplateSkill(MycroftSkill):
     @intent_handler(IntentBuilder("").require("due_date").require("name_assignment"))
     def _handle_assignment_due_date(self, message):
         due_date = message.data.get("due_date")
-        self.due_date = extract_datetime(due_date)
+        self._due_date = extract_datetime(due_date)
         if not self._due_date:
             self.speak_dialog("invalid_due_date")
             return
         #extract_datetime return a list containing datetime object and a string containing
         #whatever is leftover from the string passed through eg "Assignment is due 21st October"
         #would place Assignment is due within that string variable"
-        self._due_date = self.due_date[0].strftime('%d/%m/%Y')
+        self._due_date = self._due_date[0].strftime('%d/%m/%Y')
         if not self._due_date:
             self.speak_dialog("invalid_due_date")
             return
@@ -100,7 +105,8 @@ class TemplateSkill(MycroftSkill):
     def _handle_assignment_percentage(self, message):
         self._type = message.data.get("type")
         self.speak_dialog("Done")
-        self._handle_push_assignment()
+        #self._handle_push_assignment()
+        self._isAfk = False
 
     @intent_handler(IntentBuilder("").require("list").require("module_id"))
     def _handle_get_module_assignments(self, message):
@@ -179,6 +185,23 @@ class TemplateSkill(MycroftSkill):
         for assigment in important_assignments:
             self.speak_dialog(assignment.name + " and it's worth " + assignment.total_per + " percent of module " + assignment.module_id)
 
+    def _timeCheck(self):
+        self._isAfk = True
+        print("Brian")
+        self._oldtime = time.time()
+        while(1):
+            #print(time.time())
+            if time.time() - self._oldtime > 60 and self._isAfk is True:
+                print("hello brian, it's working")
+                _subject = "Mycroft assignment update"
+                _message = """Hello\n\nIt seems you were interrupted when making changes within                     the assignment skill. This is just a reminder incase it was anything important.\n\n                  Regards,\n\nMycroft Assignment Skill."""
+                recipient = "brianarch1996@gmail.com"
+                send_email.send_email(_subject,_message, recipient)
+                return
+            elif time.time() - self._oldtime > 20 and self._isAfk is False:
+                print("false")
+                return
+        
 # The "create_skill()" method is used to create an instance of the skill.
 # Note that it's outside the class itself.
 def create_skill():
