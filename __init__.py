@@ -86,6 +86,12 @@ class TemplateSkill(MycroftSkill):
         self.set_context("due_date_assignment", self._due_date)
         self.speak_dialog("assignment_module", expect_response=True)
 
+    @intent_handler(IntentBuilder("").require("How_much").require("module").optionally("worth"))
+    def _handle_assignment_get_per(self, message):
+        print("hello")
+        self.assignment = message.data.get("module")
+        self._get_assignment_per()
+
     @intent_handler(IntentBuilder("").require("module").require("due_date_assignment"))
     def _handle_assignnment_module(self, message):
         module = message.data.get("module")
@@ -130,6 +136,11 @@ class TemplateSkill(MycroftSkill):
         assignment_test = assignment.Assignment(assigned_date, self._module, self._due_date, self._percentage, 0, self._type, self._assignment_name) 
         self.db.pushAssignment(assignment_test)
 
+    
+    def _get_assignment_per(self):
+        assignment = self.db.getAssignment(self.assignment)
+        print(assignment.total_per)
+        self.speak_dialog("assignment_worth", {"percentage": assignment.total_per})
 
     def _make_assignment(self):
         self.speak_dialog("assignment_name", expect_response=True)
