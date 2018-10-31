@@ -57,6 +57,13 @@ class TemplateSkill(MycroftSkill):
         for single_assignment in assignment_list:
             self.speak_dialog(single_assignment.name)
 
+    @intent_handler(IntentBuilder("").require("remove_assignment").require("name"))
+    def handler_remove_assignment(self, message):
+        self._assignment_name = message.data.get("name")
+        self.db.removeAssignment(self._assignment_name)
+        print(self._assignment_name)
+        self.speak_dialog("remove")
+
     @intent_handler(IntentBuilder("").require("list_all"))
     def handle_list_assignment(self, message):
         assignment_list = self.db.getAllAssignments()
