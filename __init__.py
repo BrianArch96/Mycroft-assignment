@@ -30,6 +30,14 @@ class TemplateSkill(MycroftSkill):
         super(TemplateSkill, self).__init__(name="TemplateSkill")
         self.db = db_helper.db_helper(self.settings.get("student_id"))
 
+
+    @intent_handler(IntentBuilder("").require("Update_Assignment").require("name"))
+    def handle_update_assignment(self, message):
+        self._u_assignment = message.data.get("name")
+        self.set_context("update", self._u_assignment)
+        self.speak_dialog("assignment_update", expect_response=True)
+        
+
     @intent_handler(IntentBuilder("").require("New_Assignment"))
     def handle_make_assignment(self, message):
         self.time_thread = threading.Thread(target=self._timeCheck, args=[])
@@ -43,6 +51,10 @@ class TemplateSkill(MycroftSkill):
         self.set_context("name_assignment", message.data.get("name"))
         self.speak_dialog("assignment_due_date", expect_response=True)
 
+    @intent_handler(IntentBuilder("").require("name").require("update"))
+    def handle_update_type(self, message):
+        percent = message.data.get("name")
+        self._handle_update(percent)
 
     @intent_handler(IntentBuilder("").require("list_upcoming"))
     def handle_upcoming_assignments(self, message):
@@ -143,7 +155,16 @@ class TemplateSkill(MycroftSkill):
         assignment_test = assignment.Assignment(assigned_date, self._module, self._due_date, self._percentage, 0, self._type, self._assignment_name) 
         self.db.pushAssignment(assignment_test)
 
-    
+    def _handle_update(self, percent):
+        for assignment in self.db.getAllAssignments():
+            if assignment.name == self._u_assignment:
+                self.db.updateAssignmentAccPer(assignment.name, percent)
+                return
+        self.speak_dialog("no_assignment")
+        self._list_all_assignments()
+        #print("Could not find or update assignment")
+
+
     def _get_assignment_per(self):
         assignment = self.db.getAssignment(self.assignment)
         print(assignment.total_per)
@@ -170,6 +191,12 @@ class TemplateSkill(MycroftSkill):
         self.speak_dialog("next_assignment_due", {"name": closest_assignment.name, "due_date": date_string})
         self._check_other_assignments(closest_assignment, assignments)
     
+
+    def _list_all_assignments(self):
+        self.speak_dialog("will_list")
+        for assignment in self.db.getAllAssignments():
+            self.speak_dialog(assignment.name)
+
     def _remove_outdated_assignments(self, assignments):
         today = datetime.now()
         checkdate = today.strftime("%d/%m/%Y")
@@ -218,6 +245,7 @@ class TemplateSkill(MycroftSkill):
                 return
             elif time.time() - self._oldtime > 20 and self._isAfk is False:
                 print("false")
+                self.remove_context("name_assignment")
                 return
         
 # The "create_skill()" method is used to create an instance of the skill.
