@@ -13,9 +13,3 @@ def send_email(subject, content, recipient):
     mail.sendmail("Mycroft.studentAssistant@gmail.com", recipient, content)
 
     mail.quit()
-
-
-Subject = "Mycroft Assignment Update"
-message = "Hello,\n\nSomething has been updated within the assignment skill.\n\n Best regards,\n\n Student Assistant Team."
-recipient = "brianarch1996@gmail.com"
-send_email(Subject, message, recipient)
