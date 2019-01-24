@@ -19,15 +19,10 @@ from .db import assignment
 from .db import db_helper
 from .email import send_email
 
-# Each skill is contained within its own class, which inherits base methods
-# from the MycroftSkill class.  You extend this class as shown below.
+class AssignmentSkill(MycroftSkill):
 
-# TODO: Change "Template" to a unique name for your skill
-class TemplateSkill(MycroftSkill):
-
-    # The constructor of the skill, which calls MycroftSkill's constructor
     def __init__(self):
-        super(TemplateSkill, self).__init__(name="TemplateSkill")
+        super(AssignmentSkill, self).__init__(name="AssignmentSkill")
         self.db = db_helper.db_helper(self.settings.get("student_id"))
 
 
@@ -130,7 +125,7 @@ class TemplateSkill(MycroftSkill):
     def _handle_assignment_percentage(self, message):
         self._type = message.data.get("type")
         self.speak_dialog("Done")
-        #self._handle_push_assignment()
+        self._handle_push_assignment()
         self._isAfk = False
 
     @intent_handler(IntentBuilder("").require("list").require("module_id"))
@@ -177,15 +172,17 @@ class TemplateSkill(MycroftSkill):
     def _handle_next_assignment(self):
         assignments = self.db.getAllAssignments()
         assignments = self._remove_outdated_assignments(assignments)
-        closest_assignment = None;
+        if len(assignments) == 0:
+            self.speak_dialog("You have no upcoming assignments!")
+            return
+        print(len(assignments))
+        closest_assignment = assignments[0];
         for assignment in assignments:
-            if closest_assignment is None:
-                    closest_assignment = assignment
-            else:
-                closest_assignment_date = datetime.strptime(closest_assignment.due_date, "%d/%m/%Y")
-                challenging_assignment_date = datetime.strptime(assignment.due_date, "%d/%m/%Y")
-                if (closest_assignment_date > challenging_assignment_date):
-                    closest_assignment = assignment
+            closest_assignment_date = datetime.strptime(closest_assignment.due_date, "%d/%m/%Y")
+            challenging_assignment_date = datetime.strptime(assignment.due_date, "%d/%m/%Y")
+            if (closest_assignment_date > challenging_assignment_date):
+                closest_assignment = assignment
+        print(closest_assignment.due_date)
         _day, _month, _year = closest_assignment.due_date.split("/")
         date_string = date(day=int(_day), month=int(_month), year=int(_year)).strftime('%A %d %B %Y')
         self.speak_dialog("next_assignment_due", {"name": closest_assignment.name, "due_date": date_string})
@@ -251,4 +248,4 @@ class TemplateSkill(MycroftSkill):
 # The "create_skill()" method is used to create an instance of the skill.
 # Note that it's outside the class itself.
 def create_skill():
-    return TemplateSkill()
+    return AssignmentSkill()
