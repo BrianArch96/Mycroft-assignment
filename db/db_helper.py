@@ -64,6 +64,8 @@ class db_helper(object):
             if not assignment:
                 return None
             assignments.append(assignment)
+        if len(assignments) == 0:
+            return None
         return assignments
 
     def getAssignment(self, assignment_name):
