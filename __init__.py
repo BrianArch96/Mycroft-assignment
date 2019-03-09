@@ -44,6 +44,7 @@ class AssignmentSkill(MycroftSkill):
     def handle_assignment_name(self, message):
         self._assignment_name = message.data.get("name")
         self.set_context("name_assignment", message.data.get("name"))
+        self.remove_context("new_assignment")
         self.speak_dialog("assignment_due_date", expect_response=True)
 
     @intent_handler(IntentBuilder("").require("name").require("update"))
@@ -83,7 +84,7 @@ class AssignmentSkill(MycroftSkill):
         for single_assignment in assignment_list:
             self.speak_dialog(single_assignment.name)
 
-    @intent_handler(IntentBuilder("").require("due_date").require("name_assignment"))
+    @intent_handler(IntentBuilder("").require("due").require("due_date"))
     def _handle_assignment_due_date(self, message):
         due_date = message.data.get("due_date")
         self._due_date = extract_datetime(due_date)
@@ -140,6 +141,12 @@ class AssignmentSkill(MycroftSkill):
         for assignment in m_assignments:
             self.speak_dialog(assignment.name)
 
+    @intent_handler(IntentBuilder("").require("how_much_worth").require("closest_ass"))
+    def handle_next_worth(self, message):
+        print("hello")
+        self.speak_dialog("how_much", {"worth":message.data.get("closest_ass")})
+
+
     @intent_handler(IntentBuilder("").require("next_assignment"))
     def handle_next_assignmet(self, message):
         self._handle_next_assignment()
@@ -187,8 +194,9 @@ class AssignmentSkill(MycroftSkill):
         date_string = date(day=int(_day), month=int(_month), year=int(_year)).strftime('%A %d %B %Y')
         self.speak_dialog("next_assignment_due", {"name": closest_assignment.name, "due_date": date_string})
         self._check_other_assignments(closest_assignment, assignments)
+        print(closest_assignment.total_per)
+        self.set_context("closest_ass", closest_assignment.total_per)
     
-
     def _list_all_assignments(self):
         self.speak_dialog("will_list")
         for assignment in self.db.getAllAssignments():
