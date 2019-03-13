@@ -126,7 +126,9 @@ class AssignmentSkill(MycroftSkill):
     def _handle_assignment_percentage(self, message):
         self._type = message.data.get("type")
         self.speak_dialog("Done")
-        self._handle_push_assignment()
+        re = self._handle_push_assignment()
+        if re == 0:
+            self.speak_dialog("already_exists")
         self._isAfk = False
 
     @intent_handler(IntentBuilder("").require("list").require("module_id"))
@@ -173,8 +175,16 @@ class AssignmentSkill(MycroftSkill):
         self.speak_dialog("assignment_worth", {"percentage": assignment.total_per})
 
     def _make_assignment(self):
+        self._remove_context()
         self.speak_dialog("assignment_name", expect_response=True)
         self.set_context("new_assignment", "new assignment")
+
+    def _remove_context(self):
+        self.remove_context("module_assignment")
+        self.remove_context("due_date_assignment")
+        self.remove_context("percentage_assignment")
+        self.remove_context("new_assignment")
+        self.remove_context("name_assignment")
 
     def _handle_next_assignment(self):
         assignments = self.db.getAllAssignments()
