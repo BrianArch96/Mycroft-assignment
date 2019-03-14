@@ -50,10 +50,11 @@ class db_helper(object):
         for document in self.assignment_collection.find():
             if newAssignment.name == self.parseAssignment(document).name:
                 print("Assignment name already exists")
-                return None
+                return 0
 
         print("yurting") 
         post_id = self.assignment_collection.insert_one(assignment).inserted_id
+        return 1
     
     def getAllAssignments(self):
         self.assignment_collection = self.db[assignments_collection]

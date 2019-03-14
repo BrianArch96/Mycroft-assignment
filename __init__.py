@@ -42,6 +42,13 @@ class AssignmentSkill(MycroftSkill):
     @intent_handler(IntentBuilder("").require("name").
             require("new_assignment"))
     def handle_assignment_name(self, message):
+        print("yurt")
+        if (message.data.get("name").lower() == "nevermind"):
+            self.speak_dialog("cancel_submission")
+            self._isAfk = False
+            self._remove_context()
+            return
+        print(message.data.get("name"))
         self._assignment_name = message.data.get("name")
         self.set_context("name_assignment", message.data.get("name"))
         self.remove_context("new_assignment")
@@ -84,8 +91,20 @@ class AssignmentSkill(MycroftSkill):
         for single_assignment in assignment_list:
             self.speak_dialog(single_assignment.name)
 
+    @intent_handler(IntentBuilder("").require("nevermind"))
+    def  _handle_cancel(self, message):
+            self.speak_dialog("cancel_submission")
+            self._isAfk = False
+            self._remove_context()
+
     @intent_handler(IntentBuilder("").require("due").require("due_date"))
     def _handle_assignment_due_date(self, message):
+        print(message.data.get("due_date"))
+        if (message.data.get("due_date").lower() == "nevermind"):
+            self.speak_dialog("cancel_submission")
+            self._isAfk = False
+            self._remove_context()
+            return
         due_date = message.data.get("due_date")
         self._due_date = extract_datetime(due_date)
         if not self._due_date:
@@ -109,6 +128,11 @@ class AssignmentSkill(MycroftSkill):
 
     @intent_handler(IntentBuilder("").require("module").require("due_date_assignment"))
     def _handle_assignnment_module(self, message):
+        if (message.data.get("module").lower() == "nevermind"):
+            self.speak_dialog("cancel_submission")
+            self._isAfk = False
+            self._remove_context()
+            return
         module = message.data.get("module")
         self._module = message.data.get("module")
         self.set_context("module_assignment", module)
@@ -118,12 +142,22 @@ class AssignmentSkill(MycroftSkill):
             optionally("percent"))
     def _handle_assignment_percentaage(self, message):
         #percentage = message.data.get("percentage")
+        if (message.data.get("percentage").lower() == "nevermind"):
+            self.speak_dialog("cancel_submission")
+            self._isAfk = False
+            self._remove_context()
+            return
         self._percentage = message.data.get("percentage")
         self.set_context("percentage_assignment", self._percentage)
         self.speak_dialog("assignment_type", expect_response=True)
 
     @intent_handler(IntentBuilder("").require("type").require("percentage_assignment"))
     def _handle_assignment_percentage(self, message):
+        if (message.data.get("type").lower() == "nevermind"):
+            self.speak_dialog("cancel_submission")
+            self._isAfk = False
+            self._remove_context()
+            return
         self._type = message.data.get("type")
         self.speak_dialog("Done")
         re = self._handle_push_assignment()
@@ -178,6 +212,7 @@ class AssignmentSkill(MycroftSkill):
         self._remove_context()
         self.speak_dialog("assignment_name", expect_response=True)
         self.set_context("new_assignment", "new assignment")
+        print("hey")
 
     def _remove_context(self):
         self.remove_context("module_assignment")
