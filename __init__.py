@@ -19,6 +19,8 @@ from .db import assignment
 from .db import db_helper
 from .email import send_email
 
+WEEK = 7
+MONTH = 31
 class AssignmentSkill(MycroftSkill):
 
     def __init__(self):
@@ -93,9 +95,19 @@ class AssignmentSkill(MycroftSkill):
 
     @intent_handler(IntentBuilder("").require("nevermind"))
     def  _handle_cancel(self, message):
-            self.speak_dialog("cancel_submission")
-            self._isAfk = False
-            self._remove_context()
+        self.speak_dialog("cancel_submission")
+        self._isAfk = False
+        self._remove_context()
+
+    @intent_handler(IntentBuilder("").require("specific_date").require("time"))
+    def _handle_time(self, message):
+        print(message.data.get("time"))
+        if message.data.get("time") == "week":
+            self._checkTW()
+        if message.data.get("time") == "month":
+            self._checkTM()
+            print("Hey")
+            
 
     @intent_handler(IntentBuilder("").require("due").require("due_date"))
     def _handle_assignment_due_date(self, message):
@@ -202,6 +214,49 @@ class AssignmentSkill(MycroftSkill):
         self._list_all_assignments()
         #print("Could not find or update assignment")
 
+
+    def _checkTW(self):
+        assignment_list = self.db.getAllAssignments()
+        assignments_in_date = []
+        for assignment in assignment_list:
+            d = datetime.strptime(assignment.due_date, '%d/%m/%Y')
+            for x in range(0, WEEK+1):
+                if self.is_givenDays(d, x):
+                    assignment._due_date = d
+                    assignments_in_date.append(assignment)
+
+        if len(assignments_in_date) == 0:
+            self.speak_dialog("no_assignments_tw")
+            return
+
+        self.speak_dialog("have_assignments")
+        for assignment in assignments_in_date:
+            assignment._due_date = datetime.strftime(assignment._due_date, "%A the %d of %B %Y")
+            self.speak_dialog("assignments_details", {"name": assignment._name,
+                "due_date": assignment._due_date , "percentage": assignment._total_per})
+
+    def _checkTM(self):
+        assignment_list = self.db.getAllAssignments()
+        assignments_in_date = []
+        for assignment in assignment_list:
+            d = datetime.strptime(assignment.due_date, '%d/%m/%Y')
+            for x in range(0, MONTH+1):
+                if self.is_givenDays(d, x):
+                    assignment._due_date = d
+                    assignments_in_date.append(assignment)
+
+        if len(assignments_in_date) == 0:
+            self.speak_dialog("no_assignments_tm")
+            return
+
+        self.speak_dialog("have_assignments")
+        for assignment in assignments_in_date:
+            assignment._due_date = datetime.strftime(assignment._due_date, "%A the %d of %B %Y")
+            self.speak_dialog("assignments_details", {"name": assignment._name,
+                "due_date": assignment._due_date , "percentage": assignment._total_per})
+
+    def is_givenDays(self, d, n):
+        return d.date() == datetime.today().date() + timedelta(days=n)
 
     def _get_assignment_per(self):
         assignment = self.db.getAssignment(self.assignment)
