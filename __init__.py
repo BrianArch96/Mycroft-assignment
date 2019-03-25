@@ -346,7 +346,7 @@ class AssignmentSkill(MycroftSkill):
             if time.time() - self._oldtime > 60 and self._isAfk is True:
                 print("hello brian, it's working")
                 _subject = "Mycroft assignment update"
-                _message = """Hello\n\nIt seems you were interrupted when making changes within                     the assignment skill. This is just a reminder incase it was anything important.\n\n                  Regards,\n\nMycroft Assignment Skill."""
+                _message = """Hello,\n\nIt seems you were interrupted when making changes within the assignment skill. This is just a reminder incase it was anything important.\n\nRegards,\n\nMycroft Assignment Skill"""
                 recipient = "brianarch1996@gmail.com"
                 send_email.send_email(_subject,_message, recipient)
                 return
