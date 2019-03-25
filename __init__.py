@@ -328,11 +328,13 @@ class AssignmentSkill(MycroftSkill):
             percentage_check = int(percentage_check)
             if (_check_date > assignment_date) and (percentage_check < int(assignment.total_per)):
                 important_assignments.append(assignment)
+                print(assignment.name)
 
         if len(important_assignments) is 0:
             return
+        print(important_assignments[1].name, "h")
         self.speak_dialog("But don't forget about the following assignments, they're due within two weeks and worth considerably more than " + closest_assignment.name)
-        for assigment in important_assignments:
+        for assignment in important_assignments:
             self.speak_dialog(assignment.name + " and it's worth " + assignment.total_per + " percent of module " + assignment.module_id)
 
     def _timeCheck(self):
