@@ -160,6 +160,8 @@ class AssignmentSkill(MycroftSkill):
             self._remove_context()
             return
         self._percentage = message.data.get("percentage")
+        self._percentage = re.sub('[\W_]+', '', self._percentage)
+        print(self._percentage)
         self.set_context("percentage_assignment", self._percentage)
         self.speak_dialog("assignment_type", expect_response=True)
 
